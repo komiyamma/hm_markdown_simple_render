@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+    <head>
+        <title>HmMarkdownMermaidSimpleRender</title>
+        <script src="./HmCustomRenderBrowser.js"></script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.5.1/github-markdown.min.css">
+        <script src="https://cdn.jsdelivr.net/npm/marked@4.0.16/marked.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/mermaid@9.1.1/dist/mermaid.min.js"></script>
+    </head>
+
+    <body class="markdown-body" style="margin:10px">
+        <div id="content"></div>
+        <script>
+            mermaid.initialize({ startOnLoad: false });
+
+            const renderer = new marked.Renderer();
+
+            renderer.code = function (code, language) {
+                if (language === 'mermaid') {
+                    return '<div class="mermaid">' + code + '</div>';
+                } else {
+                    // 他の言語はプレーンテキストとして表示
+                    return '<pre><code>' + code + '</code></pre>';
+                }
+            };
+
+            marked.use({ renderer });
+
+            document.addEventListener('DOMContentLoaded', () => {
+                // １秒に一度データを受け取る
+                HmCustomRenderBrowser.setInterval(onReceiveObject, 2000);
+            })
+
+            function onReceiveObject(obj, error) {
+                if (obj) {
+                    content.innerHTML = marked.parse(obj.text);
+                    mermaid.init(undefined, content.querySelectorAll('.mermaid'));
+                }
+            }
+        </script>
+    </body>
+
+</html>

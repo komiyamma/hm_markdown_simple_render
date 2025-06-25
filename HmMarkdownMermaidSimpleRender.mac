@@ -1,0 +1,22 @@
+﻿hidemaruversion "9.43.99";
+
+jsmode "JScript\\" + currentmacrofilename;
+
+execjs currentmacrodirectory + "\\HmCustomRenderServer.js";
+
+js {
+
+function showCustomRenderPane(url) {
+
+    url = url.replace("HmCustomRenderBrowser.html", "HmMarkdownMermaidSimpleRender.html");
+
+    renderpanecommand({
+        target: "HmMarkdownMermaidSimpleRender",
+        url: url,
+        show: 1,
+        size: 500,
+        initialize: "async"
+    });
+}
+
+} // js
