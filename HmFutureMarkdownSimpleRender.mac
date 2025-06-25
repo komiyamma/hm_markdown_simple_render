@@ -8,7 +8,7 @@ js {
 
 function showCustomRenderPane(url) {
 
-    url = url.replace("HmCustomRenderBrowser.html", "HmMarkdownMermaidSimpleRender.html");
+    url = url.replace("HmCustomRenderBrowser.html", "HmFutureMarkdownSimpleRender.html");
 
     renderpanecommand({
         target: "HmMarkdownMermaidSimpleRender",
