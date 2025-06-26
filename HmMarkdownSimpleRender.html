@@ -1,79 +1,67 @@
 <!DOCTYPE html>
-<!-- HmMerkdownSimpleRender ver 1.0.0.1 -->
+<!-- HmMarkkdownSimpleRender 1.0.0.1 -->
 <html lang="ja">
+<head>
+    <title>HmMarkdownSimpleRender</title>
+    <script src="./HmCustomRenderBrowser.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.8.1/github-markdown.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked@15.0.12/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@11.7.0/dist/mermaid.min.js"></script>
+    
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            },
+            svg: { fontCache: 'global' }
+        };
+    </script>
 
-    <head>
-        <title>HmMarkdownSimpleRender</title>
-        <script src="./HmCustomRenderBrowser.js"></script>
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.8.1/github-markdown.min.css">
-        <script src="https://cdn.jsdelivr.net/npm/marked@15.0.12/marked.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/mermaid@11.7.0/dist/mermaid.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js"></script>
-    </head>
-    <style>
-        .markdown-body { margin: 10px; }
-    </style>
-    <body class="markdown-body">
-        <div id="content"></div>
-        <script>
-            // MathJaxの設定（対話AI用の一般的な記法のみ）
-            window.MathJax = {
-                tex: {
-                    inlineMath: [['$', '$']],
-                    displayMath: [['$$', '$$']]
-                },
-                svg: {
-                    fontCache: 'global'
-                }
-            };
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js"></script>
 
-            mermaid.initialize({ startOnLoad: false, securityLevel: "loose" });
+</head>
+<style>
+    .markdown-body { margin: 10px; }
+</style>
+<body class="markdown-body">
+    <div id="content"></div>
+    <script>
+        mermaid.initialize({ startOnLoad: false, securityLevel: "loose" });
 
-            // 新しいmarkedバージョン（v5以降）に対応
-            const renderer = {
-                code(token) {
-                    // tokenオブジェクトから必要な情報を取得
-                    const code = token.text;
-                    const language = token.lang;
-
-                    if (language === 'mermaid') {
-                        return '<div class="mermaid">' + code + '</div>';
-                    } else {
-                        // 他の言語はプレーンテキストとして表示
-                        return '<pre><code>' + code + '</code></pre>';
-                    }
-                }
-            };
-
-            marked.use({ renderer });
-
-            function onReceiveObject(obj, error) {
-                if (obj.error) { return; }
-                if (obj.noNeedUpdate) { return; }
-                if (obj) {
-                    content.innerHTML = marked.parse(obj.text);
-
-                    // mermaid v11以降では mermaid.run() を使用（非同期処理）
-                    mermaid.run({
-                        nodes: content.querySelectorAll('.mermaid')
-                    }).then(() => {
-                        // MathJaxで数式を再レンダリング（mermaid処理完了後）
-                        if (window.MathJax && window.MathJax.typesetPromise) {
-                            MathJax.typesetPromise([content]).catch(function (err) {
-                                // console.log('MathJax typeset failed: ' + err.message);
-                            });
-                        }
-                    }).catch((error) => {
-                        // console.error('Mermaid rendering failed:', error);
-                    });
-                }
+        const renderer = {
+            code(token) {
+                return token.lang === 'mermaid' 
+                    ? '<div class="mermaid">' + token.text + '</div>'
+                    : '<pre><code>' + token.text + '</code></pre>';
             }
+        };
 
-            document.addEventListener('DOMContentLoaded', () => {
-                // １秒に一度データを受け取る
-                HmCustomRenderBrowser.setInterval(onReceiveObject, 2000);
-            })
-        </script>
-    </body>
+        marked.use({ renderer });
 
+        let prevText = "";
+
+        function onReceiveObject(obj, error) {
+            if (obj.error || obj.noNeedUpdate || prevText == obj.text) return;
+            prevText = obj.text;
+            
+            content.innerHTML = marked.parse(obj.text);
+
+            MathJax.startup.promise.then(() => {
+                if (MathJax.typesetClear) MathJax.typesetClear([content]);
+                return MathJax.typesetPromise([content]);
+            });
+
+            const mermaidElements = content.querySelectorAll('.mermaid');
+            if (mermaidElements.length > 0) {
+                mermaid.run({ nodes: mermaidElements });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            HmCustomRenderBrowser.setInterval(onReceiveObject, 2000);
+        });
+    </script>
+</body>
 </html>
