@@ -1,4 +1,4 @@
-﻿// HmMarkdownSimpleRender 1.0.0.2
+﻿// HmMarkdownSimpleRender 1.0.0.3
 hidemaruversion "9.43.99";
 
 jsmode "JScript\\" + currentmacrofilename;
