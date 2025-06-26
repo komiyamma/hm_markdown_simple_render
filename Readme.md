@@ -5,3 +5,5 @@
 秀丸上で「Markdown / Mermaid / MathJax」に対応したリアルタイムレンダリングビュー。  
 主に「対話AIの返答」や、「Github等のMarkdown」をコピペでレンダリング表示するためのコンポーネント。
 
+<img src="./cnt_hm_markdown_simple_render_01.png">
+
