@@ -1,4 +1,4 @@
-﻿// HmMarkdownSimpleRender 1.0.0.1
+﻿// HmMarkdownSimpleRender 1.0.0.2
 hidemaruversion "9.43.99";
 
 jsmode "JScript\\" + currentmacrofilename;
@@ -14,7 +14,7 @@ function onRequestObject() {
     
     var obj = {
         text: gettotaltext(),
-        noUpdate : isNoNeedUpdate
+        noNeedUpdate : isNoNeedUpdate
     };
 
     return obj;
