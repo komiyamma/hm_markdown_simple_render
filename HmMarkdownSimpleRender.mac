@@ -8,10 +8,10 @@ execjs currentmacrodirectory + "\\HmCustomRenderServer.js";
 js {
 
 function onRequestObject() {
-    
+
     // タブモードで裏にある状態は、見えるハズがないので、ブラウザ側は更新する必要はないよ、という情報を付与
     var isNoNeedUpdate = inputstates() & 0x00000800;
-    
+
     var obj = {
         text: gettotaltext(),
         noNeedUpdate : isNoNeedUpdate
