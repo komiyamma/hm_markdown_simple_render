@@ -1,4 +1,4 @@
-﻿// HmCustomRenderServer.js ver 2.4.4.2
+﻿// HmCustomRenderServer.WebView2.js ver 2.4.4.2
 var _currentMacroDirectory = currentmacrodirectory();
 
 if (typeof (_httpServer1) != "undefined") {
@@ -8,8 +8,16 @@ if (typeof (_httpServer2) != "undefined") {
     _httpServer2.close();
 }
 
-var _httpServer1 = hidemaru.createHttpServer({ makeKey: 1 }, function (req, res) {
-    if (req.url == "/" + _httpServer1.key) {
+var _httpServer1 = hidemaru.createHttpServer({ makeKey: 1 }, async (req, res) => {
+
+    var url = req.url;
+
+    // ここはパッチだと思って!!
+    if (typeof (url) != "string") {
+        url = await req.url;
+    }
+
+    if (url == "/" + _httpServer1.key) {
         res.writeHead(200); // OK
         var obj = onRequestObject();
         res.write(JSON.stringify(obj));
@@ -20,10 +28,19 @@ var _httpServer1 = hidemaru.createHttpServer({ makeKey: 1 }, function (req, res)
     }
 });
 
-var _httpServer2 = hidemaru.createHttpServer(function (req, res) {
-    if (req.url.indexOf("/" + _httpServer1.key + "?sendObject=") == 0) {
+
+var _httpServer2 = hidemaru.createHttpServer(async (req, res) => {
+
+    var url = req.url;
+
+    // ここはパッチだと思って!!
+    if (typeof (url) != "string") {
+        url = await req.url;
+    }
+
+    if (url.indexOf("/" + _httpServer1.key + "?sendObject=") == 0) {
         res.writeHead(200); // OK
-        var json_text = decodeURIComponent(req.url);
+        var json_text = decodeURIComponent(url);
         json_text = json_text.replace("/" + _httpServer1.key + "?sendObject=", "");
         _proxyOnReceiveObjectFromRenderPane(json_text);
         res.write("{}");
@@ -33,6 +50,7 @@ var _httpServer2 = hidemaru.createHttpServer(function (req, res) {
         res.end("");
     }
 });
+
 
 // 非同期関数なので非同期中に使える関数で構築する必要あり
 function onRequestObject() {
@@ -45,7 +63,7 @@ function onRequestObject() {
 
 function _proxyOnReceiveObjectFromRenderPane(json_text) {
     try {
-        if (typeof(onReceiveObject) == "function") {
+        if (onReceiveObject && typeof(onReceiveObject) == "function") {
             var json = JSON.parse(json_text);
             onReceiveObject(json);
         }
@@ -54,9 +72,15 @@ function _proxyOnReceiveObjectFromRenderPane(json_text) {
 }
 
 function _makeUrl(htmlFullPath, port1, port2, key, funcid) {
-    var htmlFullPath = htmlFullPath.replace(/\\/g, "/");
-    var absoluteUrl = sprintf("file://%s?port1=%s&port2=%s&key=%s&funcid=%s", encodeURI(htmlFullPath), port1.toString(), port2.toString(), key.toString(), funcid.toString());
-    return absoluteUrl;
+    var absoluteUrl = new URL(htmlFullPath);
+    var params = new URLSearchParams({
+        port1: String(port1),
+        port2: String(port2),
+        key: String(key),
+        funcid: String(funcid),
+    });
+    absoluteUrl.search = params.toString();
+    return absoluteUrl.href;
 }
 
 function _outputAlert(msg) {

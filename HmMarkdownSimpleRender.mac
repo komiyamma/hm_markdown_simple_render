@@ -1,18 +1,18 @@
-﻿// HmMarkdownSimpleRender 1.0.0.3
+﻿// HmMarkdownSimpleRender 1.0.0.4
 hidemaruversion "9.43.99";
 
-jsmode "JScript\\" + currentmacrofilename;
+jsmode "WebView2\\" + currentmacrofilename;
 
-execjs currentmacrodirectory + "\\HmCustomRenderServer.js";
+execjs currentmacrodirectory + "\\HmCustomRenderServer.WebView2.js";
 
 js {
 
 function onRequestObject() {
 
     // タブモードで裏にある状態は、見えるハズがないので、ブラウザ側は更新する必要はないよ、という情報を付与
-    var isNoNeedUpdate = inputstates() & 0x00000800;
+    const isNoNeedUpdate = inputstates() & 0x00000800;
 
-    var obj = {
+    const obj = {
         text: gettotaltext(),
         noNeedUpdate : isNoNeedUpdate
     };
@@ -20,10 +20,24 @@ function onRequestObject() {
     return obj;
 }
 
+function addBaseUrlParameter(url) {
+    // 開いているファイルが名前が付いているならば、そこをbaseのurlとするため、クエリーとして伝達する
+    if (filename2()) {
+        var currentDir = directory2();
+        var currentHref = new URL (currentDir + "\\").href;
+        var urlObj = new URL(url);
+        urlObj.searchParams.set('base', currentHref);
+        url = urlObj.href;
+    }
+    
+    return url;
+}
+
 function showCustomRenderPane(url) {
 
     url = url.replace("HmCustomRenderBrowser.html", "HmMarkdownSimpleRender.html");
-
+    url = addBaseUrlParameter(url);
+    
     browserpanecommand({
         target: "_each", // "HmMarkdownSimpleRender",
         url: url,

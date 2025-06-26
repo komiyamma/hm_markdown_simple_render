@@ -1,67 +1,82 @@
 <!DOCTYPE html>
-<!-- HmMarkkdownSimpleRender 1.0.0.3 -->
+<!-- HmMarkkdownSimpleRender 1.0.0.4 -->
 <html lang="ja">
-<head>
-    <title>HmMarkdownSimpleRender</title>
-    <script src="https://cdn.jsdelivr.net/gh/komiyamma/hm_custom_render_browser@2.4.4.2/HmCustomRenderBrowser.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.8.1/github-markdown.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/marked@15.0.12/marked.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/mermaid@11.7.0/dist/mermaid.min.js"></script>
-    
-    <script>
-        window.MathJax = {
-            tex: {
-                inlineMath: [['$', '$'], ['\\(', '\\)']],
-                displayMath: [['$$', '$$'], ['\\[', '\\]']],
-                processEscapes: true
-            },
-            svg: { fontCache: 'global' }
-        };
-    </script>
 
-    <script src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js"></script>
+    <head>
+        <title>HmMarkdownSimpleRender</title>
+        <script src="https://cdn.jsdelivr.net/gh/komiyamma/hm_custom_render_browser@2.4.4.2/HmCustomRenderBrowser.min.js"></script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.8.1/github-markdown.min.css">
+        <script src="https://cdn.jsdelivr.net/npm/marked@15.0.12/marked.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/mermaid@11.7.0/dist/mermaid.min.js"></script>
 
-</head>
-<style>
-    .markdown-body { margin: 10px; }
-</style>
-<body class="markdown-body">
-    <div id="content"></div>
-    <script>
-        mermaid.initialize({ startOnLoad: false, securityLevel: "loose" });
+        <script>
+            window.MathJax = {
+                tex: {
+                    inlineMath: [['$', '$'], ['\\(', '\\)']],
+                    displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                    processEscapes: true
+                },
+                svg: { fontCache: 'global' }
+            };
+        </script>
 
-        const renderer = {
-            code(token) {
-                return token.lang === 'mermaid' 
-                    ? '<div class="mermaid">' + token.text + '</div>'
-                    : '<pre><code>' + token.text + '</code></pre>';
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js"></script>
+
+        <script>
+            const params = new URLSearchParams(window.location.search);
+            const baseValue = params.get("base");
+            let baseTag = document.querySelector("base");
+            if (!baseTag) {
+                baseTag = document.createElement("base");
+                document.head.prepend(baseTag);
             }
-        };
-
-        marked.use({ renderer });
-
-        let prevText = "";
-
-        function onReceiveObject(obj, error) {
-            if (obj.error || obj.noNeedUpdate || prevText == obj.text) return;
-            prevText = obj.text;
-            
-            content.innerHTML = marked.parse(obj.text);
-
-            MathJax.startup.promise.then(() => {
-                if (MathJax.typesetClear) MathJax.typesetClear([content]);
-                return MathJax.typesetPromise([content]);
-            });
-
-            const mermaidElements = content.querySelectorAll('.mermaid');
-            if (mermaidElements.length > 0) {
-                mermaid.run({ nodes: mermaidElements });
-            }
+            baseTag.setAttribute("href", baseValue);
+        </script>
+    </head>
+    <style>
+        .markdown-body {
+            margin: 10px;
         }
+    </style>
 
-        document.addEventListener('DOMContentLoaded', () => {
-            HmCustomRenderBrowser.setInterval(onReceiveObject, 2000);
-        });
-    </script>
-</body>
+    <body class="markdown-body">
+        <div id="content"></div>
+        <script>
+            mermaid.initialize({ startOnLoad: false, securityLevel: "loose" });
+
+            const renderer = {
+                code(token) {
+                    return token.lang === 'mermaid'
+                        ? '<div class="mermaid">' + token.text + '</div>'
+                        : '<pre><code>' + token.text + '</code></pre>';
+                }
+            };
+
+            marked.use({ renderer });
+
+            let prevText = "";
+
+            function onReceiveObject(obj, error) {
+                if (obj.error || obj.noNeedUpdate || prevText == obj.text) return;
+                prevText = obj.text;
+
+                content.innerHTML = marked.parse(obj.text);
+
+                MathJax.startup.promise.then(() => {
+                    if (MathJax.typesetClear) MathJax.typesetClear([content]);
+                    return MathJax.typesetPromise([content]);
+                });
+
+                const mermaidElements = content.querySelectorAll('.mermaid');
+                if (mermaidElements.length > 0) {
+                    mermaid.run({ nodes: mermaidElements });
+                }
+            }
+
+            document.addEventListener('DOMContentLoaded', () => {
+                HmCustomRenderBrowser.setInterval(onReceiveObject, 2000);
+            });
+        </script>
+    </body>
+
 </html>
