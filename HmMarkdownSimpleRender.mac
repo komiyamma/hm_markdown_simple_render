@@ -24,7 +24,7 @@ function addBaseUrlParameter(url) {
     // 開いているファイルが名前が付いているならば、そこをbaseのurlとするため、クエリーとして伝達する
     if (filename2()) {
         var currentDir = directory2();
-        var currentHref = new URL (currentDir + "\\").href;
+        var currentHref = new URL(currentDir + "\\").href;
         var urlObj = new URL(url);
         urlObj.searchParams.set('base', currentHref);
         url = urlObj.href;
