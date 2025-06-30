@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- HmMarkkdownSimpleRender 1.0.0.5 -->
+<!-- HmMarkkdownSimpleRender 1.0.0.6 -->
 <html lang="ja">
 
     <head>
@@ -25,12 +25,14 @@
         <script>
             const params = new URLSearchParams(window.location.search);
             const baseValue = params.get("base");
-            let baseTag = document.querySelector("base");
-            if (!baseTag) {
-                baseTag = document.createElement("base");
-                document.head.prepend(baseTag);
+            if (baseValue) {
+                let baseTag = document.querySelector("base");
+                if (!baseTag) {
+                    baseTag = document.createElement("base");
+                    document.head.prepend(baseTag);
+                }
+                baseTag.setAttribute("href", baseValue);
             }
-            baseTag.setAttribute("href", baseValue);
         </script>
     </head>
     <style>
@@ -52,7 +54,13 @@
                 }
             };
 
-            marked.use({ renderer });
+            marked.use({
+                renderer,
+                breaks: false,
+                gfm: true,
+                sanitize: false,
+                smartypants: false
+            });
 
             let prevText = "";
 
@@ -60,16 +68,29 @@
                 if (obj.error || obj.noNeedUpdate || prevText == obj.text) return;
                 prevText = obj.text;
 
-                content.innerHTML = marked.parse(obj.text);
+                const tempDiv = document.createElement('div');
+                tempDiv.textContent = obj.text;
+                document.body.appendChild(tempDiv);
 
-                MathJax.startup.promise.then(() => {
-                    if (MathJax.typesetClear) MathJax.typesetClear([content]);
-                    return MathJax.typesetPromise([content]);
-                });
+                if (window.MathJax && MathJax.startup) {
+                    MathJax.startup.promise.then(() => {
+                        return MathJax.typesetPromise([tempDiv]);
+                    }).then(() => {
+                        const processedText = tempDiv.innerHTML;
+                        content.innerHTML = marked.parse(processedText);
+                        document.body.removeChild(tempDiv);
 
-                const mermaidElements = content.querySelectorAll('.mermaid');
-                if (mermaidElements.length > 0) {
-                    mermaid.run({ nodes: mermaidElements });
+                        const mermaidElements = content.querySelectorAll('.mermaid');
+                        if (mermaidElements.length > 0) {
+                            mermaid.run({ nodes: mermaidElements });
+                        }
+                    }).catch(err => {
+                        content.innerHTML = marked.parse(obj.text);
+                        document.body.removeChild(tempDiv);
+                    });
+                } else {
+                    content.innerHTML = marked.parse(obj.text);
+                    document.body.removeChild(tempDiv);
                 }
             }
 
