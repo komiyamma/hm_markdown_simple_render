@@ -1,103 +1,95 @@
 <!DOCTYPE html>
-<!-- HmMarkkdownSimpleRender 1.0.0.6 -->
+<!-- HmMarkdownSimpleRender v1.0.0.7 -->
 <html lang="ja">
+<head>
+    <title>HmMarkdownSimpleRender</title>
+    <script src="https://cdn.jsdelivr.net/gh/komiyamma/hm_custom_render_browser@2.4.4.2/HmCustomRenderBrowser.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.8.1/github-markdown.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked@15.0.12/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@11.7.0/dist/mermaid.min.js"></script>
+    
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            },
+            svg: { fontCache: 'global' }
+        };
+    </script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js"></script>
 
-    <head>
-        <title>HmMarkdownSimpleRender</title>
-        <script src="https://cdn.jsdelivr.net/gh/komiyamma/hm_custom_render_browser@2.4.4.2/HmCustomRenderBrowser.min.js"></script>
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.8.1/github-markdown.min.css">
-        <script src="https://cdn.jsdelivr.net/npm/marked@15.0.12/marked.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/mermaid@11.7.0/dist/mermaid.min.js"></script>
-
-        <script>
-            window.MathJax = {
-                tex: {
-                    inlineMath: [['$', '$'], ['\\(', '\\)']],
-                    displayMath: [['$$', '$$'], ['\\[', '\\]']],
-                    processEscapes: true
-                },
-                svg: { fontCache: 'global' }
-            };
-        </script>
-
-        <script src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js"></script>
-
-        <script>
-            const params = new URLSearchParams(window.location.search);
-            const baseValue = params.get("base");
-            if (baseValue) {
-                let baseTag = document.querySelector("base");
-                if (!baseTag) {
-                    baseTag = document.createElement("base");
-                    document.head.prepend(baseTag);
-                }
-                baseTag.setAttribute("href", baseValue);
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const baseValue = params.get("base");
+        if (baseValue) {
+            let baseTag = document.querySelector("base");
+            if (!baseTag) {
+                baseTag = document.createElement("base");
+                document.head.prepend(baseTag);
             }
-        </script>
-    </head>
-    <style>
-        .markdown-body {
-            margin: 10px;
+            baseTag.setAttribute("href", baseValue);
         }
-    </style>
+    </script>
+</head>
+<style>
+    .markdown-body { margin: 10px; }
+</style>
+<body class="markdown-body">
+    <div id="content"></div>
+    <script>
+        mermaid.initialize({ startOnLoad: false, securityLevel: "loose" });
 
-    <body class="markdown-body">
-        <div id="content"></div>
-        <script>
-            mermaid.initialize({ startOnLoad: false, securityLevel: "loose" });
+        const renderer = {
+            code(token) {
+                return token.lang === 'mermaid' 
+                    ? '<div class="mermaid">' + token.text + '</div>'
+                    : '<pre><code>' + token.text + '</code></pre>';
+            }
+        };
 
-            const renderer = {
-                code(token) {
-                    return token.lang === 'mermaid'
-                        ? '<div class="mermaid">' + token.text + '</div>'
-                        : '<pre><code>' + token.text + '</code></pre>';
-                }
-            };
+        marked.use({ 
+            renderer,
+            sanitize: false,
+            gfm: true
+        });
 
-            marked.use({
-                renderer,
-                breaks: false,
-                gfm: true,
-                sanitize: false,
-                smartypants: false
-            });
+        let prevText = "";
 
-            let prevText = "";
+        function onReceiveObject(obj, error) {
+            if (obj.error || obj.noNeedUpdate || prevText == obj.text) return;
+            prevText = obj.text;
+            
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = obj.text;
+            document.body.appendChild(tempDiv);
 
-            function onReceiveObject(obj, error) {
-                if (obj.error || obj.noNeedUpdate || prevText == obj.text) return;
-                prevText = obj.text;
-
-                const tempDiv = document.createElement('div');
-                tempDiv.textContent = obj.text;
-                document.body.appendChild(tempDiv);
-
-                if (window.MathJax && MathJax.startup) {
-                    MathJax.startup.promise.then(() => {
-                        return MathJax.typesetPromise([tempDiv]);
-                    }).then(() => {
-                        const processedText = tempDiv.innerHTML;
-                        content.innerHTML = marked.parse(processedText);
-                        document.body.removeChild(tempDiv);
-
-                        const mermaidElements = content.querySelectorAll('.mermaid');
-                        if (mermaidElements.length > 0) {
-                            mermaid.run({ nodes: mermaidElements });
-                        }
-                    }).catch(err => {
-                        content.innerHTML = marked.parse(obj.text);
-                        document.body.removeChild(tempDiv);
-                    });
-                } else {
+            if (window.MathJax && MathJax.startup) {
+                MathJax.startup.promise.then(() => {
+                    return MathJax.typesetPromise([tempDiv]);
+                }).then(() => {
+                    content.innerHTML = marked.parse(tempDiv.innerHTML);
+                    document.body.removeChild(tempDiv);
+                    
+                    const mermaidElements = content.querySelectorAll('.mermaid');
+                    if (mermaidElements.length > 0) {
+                        mermaid.run({ nodes: mermaidElements });
+                    }
+                }).catch(() => {
                     content.innerHTML = marked.parse(obj.text);
                     document.body.removeChild(tempDiv);
-                }
+                });
+            } else {
+                content.innerHTML = marked.parse(obj.text);
+                document.body.removeChild(tempDiv);
             }
+        }
 
-            document.addEventListener('DOMContentLoaded', () => {
-                HmCustomRenderBrowser.setInterval(onReceiveObject, 2000);
-            });
-        </script>
-    </body>
-
+        document.addEventListener('DOMContentLoaded', () => {
+            HmCustomRenderBrowser.setInterval(onReceiveObject, 2000);
+        });
+    </script>
+</body>
 </html>
