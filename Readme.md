@@ -1,5 +1,6 @@
 # HmMarkdownSimpleRender
 
+![HmMarkdownSimpleRender latest release](https://img.shields.io/github/v/release/komiyamma/hm_markdown_simple_render)
 [![CC0](https://img.shields.io/badge/license-CC0-blue.svg?style=flat)](LICENSE.txt)
 
 秀丸上で「Markdown / Mermaid / MathJax」に対応したリアルタイムレンダリングビュー。  
