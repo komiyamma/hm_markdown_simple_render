@@ -56,3 +56,7 @@
 *   各JavaScriptライブラリをCDN経由で読み込むため、初回利用時やキャッシュが切れた後は、インターネット接続が必要です。
 *   プレビューの更新は2秒間隔です。キー入力ごとのリアルタイム更新ではありません。
 *   非常に長い、あるいは複雑なドキュメントの場合、描画に少し時間がかかる可能性があります。
+
+## 解説サイト
+
+[https://秀丸マクロ.net/?page=nobu_tool_hm_custom_render_browser_all_render](https://秀丸マクロ.net/?page=nobu_tool_hm_custom_render_browser_all_render)
